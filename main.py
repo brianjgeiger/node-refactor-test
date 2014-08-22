@@ -118,15 +118,16 @@ class TestNodeRefactoring(unittest.TestCase):
         dashboard = Dashboard(name="Dashboard")
         dashboard.setup()
 
-
         project = Project(name="Smarty")
         project.setup()
         project_two = Project(name="Test Project")
         project_two.setup()
+
         data = Data(name="My Cool Data")
         data.setup()
         data_two = Data(name="My Raw Data", number=31)
         data_two.setup()
+
         analysis = Analysis()
         analysis.setup()
 
@@ -174,12 +175,17 @@ class TestNodeRefactoring(unittest.TestCase):
             a_datum = Data.find_one(Q('category', 'eq', 'dashboard'))
             try:
                 a_datum.look_at_me()
+                # Shouldn't get here because find_one should cause exception and never get to this block
                 self.assertTrue(False)
             except AttributeError as e:
-                # Shouldn't get here because find_one should error out
+                # Shouldn't get here because find_one should cause exception
                 self.assertTrue(False)
         except NoResultsFound as e:
             self.assertTrue(True)
+
+    def test_subclasses_should_set_data_on_creation(self):
+        data = Data.find_one(Q('name', 'eq', 'My Raw Data'))
+        self.assertEqual(data.number, 31)
 
 if __name__ == '__main__':
     unittest.main()
