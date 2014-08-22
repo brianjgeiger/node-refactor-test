@@ -17,6 +17,21 @@ class DashboardError(Exception):
         return repr(self.value)
 
 
+def filter_none(*items):
+    return [item for item in items if item is not None]
+
+
+def join_queries(*queries):
+    try:
+        return_value = reduce(
+            lambda x, y: x & y,
+            filter_none(*queries),
+        )
+    except TypeError:
+        return_value = None
+    return return_value
+
+
 class Node(StoredObject):
     _id = fields.StringField(primary=True, default=lambda: str(ObjectId()))
     category = fields.StringField(default="node")
@@ -30,26 +45,13 @@ class Node(StoredObject):
 
     @classmethod
     def find_one(cls, query=None, **kwargs):
-        if query is None:
-            if cls.find_query is None:
-                return super(Node, cls).find_one(**kwargs)
-            query = cls.find_query
-        else:
-            if cls.find_query is not None:
-                query = cls.find_query & query
-
+        query = join_queries(query, cls.find_query)
         return super(Node, cls).find_one(query=query, **kwargs)
+
 
     @classmethod
     def find(cls, query=None, **kwargs):
-        if query is None:
-            if cls.find_query is None:
-                return super(Node, cls).find(**kwargs)
-            query = cls.find_query
-        else:
-            if cls.find_query is not None:
-                query = cls.find_query & query
-
+        query = join_queries(query, cls.find_query)
         return super(Node, cls).find(query=query, **kwargs)
 
 
