@@ -111,45 +111,26 @@ class TestNodeRefactoring(unittest.TestCase):
         db.node.remove()
         Node.set_storage(storage.MongoStorage(db, 'node'))
 
-        folder = Folder(name="New Folder")
-        folder.save()
-        dashboard = Dashboard(name="Dashboard")
-        dashboard.save()
-
-        project = Project(name="Smarty")
-        project.save()
-        project_two = Project(name="Test Project")
-        project_two.save()
-
-        data = Data(name="My Cool Data")
-        data.save()
-        data_two = Data(name="My Raw Data", number=31)
-        data_two.save()
-
-        analysis = Analysis()
-        analysis.save()
+        Folder(name="New Folder").save()
+        Dashboard(name="Dashboard").save()
+        Project(name="Smarty").save()
+        Project(name="Test Project").save()
+        Data(name="My Cool Data").save()
+        Data(name="My Raw Data", number=31).save()
+        Analysis().save()
 
     def test_project_count(self):
-        all_nodes = Node.find()
-        all_folders = Folder.find()
-        all_dashboards = Dashboard.find()
-        all_projects = Project.find()
-        all_data = Data.find()
-        all_analysis = Analysis.find()
-        self.assertEqual(all_nodes.count(), 7)
-        self.assertEqual(all_folders.count(), 2)
-        self.assertEqual(all_dashboards.count(), 1)
-        self.assertEqual(all_projects.count(), 2)
-        self.assertEqual(all_data.count(), 2)
-        self.assertEqual(all_analysis.count(), 1)
+        self.assertEqual(Node.find().count(), 7)
+        self.assertEqual(Folder.find().count(), 2)
+        self.assertEqual(Dashboard.find().count(), 1)
+        self.assertEqual(Project.find().count(), 2)
+        self.assertEqual(Data.find().count(), 2)
+        self.assertEqual(Analysis.find().count(), 1)
 
     def test_only_one_dashboard(self):
-        try:
-            dashboard_two = Dashboard(name="Second Dashboard")
-            dashboard_two.setup()
-            self.assertTrue(False)
-        except DashboardError:
-            self.assertTrue(True)
+        # Should only be able to have one Dashboard
+        with self.assertRaises(DashboardError):
+            Dashboard(name="Second Dashboard").setup()
 
     def test_dashboard_only_functionality(self):
         a_dashboard = Dashboard.find_one(Q('name', 'eq', 'Dashboard'))
