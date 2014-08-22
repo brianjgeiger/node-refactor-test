@@ -175,5 +175,13 @@ class TestNodeRefactoring(unittest.TestCase):
         analysis = Analysis.find_one()
         self.assertEqual(analysis.number, 1, 'Default number was not saved on this object.')
 
+    def test_filter_none(self):
+        empty_list = filter_none(None, None, None)
+        self.assertEqual(empty_list, [])
+        a_list = filter_none('a', None)
+        self.assertEqual(a_list, ['a'])
+        no_list = filter_none()
+        self.assertEqual(no_list, [])
+
 if __name__ == '__main__':
     unittest.main()
