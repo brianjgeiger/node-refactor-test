@@ -184,7 +184,6 @@ class TestNodeRefactoring(unittest.TestCase):
         with self.assertRaises(NoResultsFound):
             Data.find_one(Q('category', 'eq', 'dashboard'))
 
-
     def test_subclasses_should_set_data_on_creation(self):
         data = Data.find_one(Q('name', 'eq', 'My Raw Data'))
         self.assertEqual(data.number, 31, 'Number was not properly stored during object creation.')
