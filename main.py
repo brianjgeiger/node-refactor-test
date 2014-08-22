@@ -59,53 +59,51 @@ class Node(StoredObject):
 class Folder(Node):
     find_query = Q('category', 'eq', 'folder') | Q('category', 'eq', 'dashboard')
 
-    def setup(self):
+    def __init__(self, **kwargs):
+        super(Node, self).__init__(**kwargs)
         self.category = "folder"
-        self.save()
 
 
 class Dashboard(Folder):
-
     find_query = Q('category', 'eq', 'dashboard')
 
-    def setup(self):
-        self.category = 'dashboard'
+    def __init__(self, **kwargs):
         existing_dashboards = Dashboard.find()
-        if existing_dashboards.count() == 0:
-            self.save()
-        else:
+        if existing_dashboards.count() != 0:
             raise DashboardError("Two Dashboards")
+        super(Node, self).__init__(**kwargs)
+        self.category = 'dashboard'
 
     def look_at_me(self):
         return 'Look at me! I am', self.name, '!'
 
 
 class Project(Node):
-
     find_query = Q('category', 'eq', 'project')
 
-    def setup(self):
+    def __init__(self, **kwargs):
+        super(Node, self).__init__(**kwargs)
         self.category = "project"
-        self.save()
 
 
 class Data(Node):
     find_query = Q('category', 'eq', 'data')
 
-    def setup(self):
+    def __init__(self, **kwargs):
+        super(Node, self).__init__(**kwargs)
         self.category = "data"
-        self.save()
 
 
 class Analysis(Node):
     find_query = Q('category', 'eq', 'analysis')
 
-    def setup(self):
+    def __init__(self, **kwargs):
+        super(Node, self).__init__(**kwargs)
         self.category = "analysis"
-        self.save()
 
 
 class TestNodeRefactoring(unittest.TestCase):
+
     def setUp(self):
         client = MongoClient()
         db = client['node-refactor-db']
@@ -114,22 +112,22 @@ class TestNodeRefactoring(unittest.TestCase):
         Node.set_storage(storage.MongoStorage(db, 'node'))
 
         folder = Folder(name="New Folder")
-        folder.setup()
+        folder.save()
         dashboard = Dashboard(name="Dashboard")
-        dashboard.setup()
+        dashboard.save()
 
         project = Project(name="Smarty")
-        project.setup()
+        project.save()
         project_two = Project(name="Test Project")
-        project_two.setup()
+        project_two.save()
 
         data = Data(name="My Cool Data")
-        data.setup()
+        data.save()
         data_two = Data(name="My Raw Data", number=31)
-        data_two.setup()
+        data_two.save()
 
         analysis = Analysis()
-        analysis.setup()
+        analysis.save()
 
     def test_project_count(self):
         all_nodes = Node.find()
