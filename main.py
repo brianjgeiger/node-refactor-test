@@ -1,6 +1,3 @@
-# todo: warn on no default, or something
-# todo: get default collection name for picklestorage, mongostorage constructors
-# todo: requirements.txt
 import unittest
 from modularodm import StoredObject
 from modularodm import fields
@@ -62,6 +59,9 @@ class Folder(Node):
     def __init__(self, **kwargs):
         super(Node, self).__init__(**kwargs)
         self.category = "folder"
+
+    def be_a_folder(self):
+        return 'I am a folder.'
 
 
 class Dashboard(Folder):
@@ -154,40 +154,44 @@ class TestNodeRefactoring(unittest.TestCase):
     def test_dashboard_only_functionality(self):
         a_dashboard = Dashboard.find_one(Q('name', 'eq', 'Dashboard'))
         dashboard_excitement = a_dashboard.look_at_me()
-        self.assertEqual(dashboard_excitement, ('Look at me! I am', 'Dashboard', '!'))
+        self.assertEqual(dashboard_excitement, ('Look at me! I am', 'Dashboard', '!'),
+                         'Did not get proper return value from Dashboard() method.')
+
+    def test_folder_uses_folder_methods(self):
+        some_folders = Folder.find()
+        a_folder = some_folders[0]
+        folder_response = a_folder.be_a_folder()
+        self.assertEqual(folder_response, 'I am a folder.', 'Folder not using folder method.')
+
+    def test_dashboard_uses_folder_methods(self):
+        a_dashboard = Dashboard.find_one()
+        folder_response = a_dashboard.be_a_folder()
+        self.assertEqual(folder_response, 'I am a folder.', 'Dashboard not using folder method.')
+
+    def test_analysis_does_not_use_folder_methods(self):
+        analysis = Analysis.find_one()
+        with self.assertRaises(AttributeError):
+            analysis.be_a_folder()
 
     def test_folder_cannot_use_dashboard_functionality(self):
-        try:
-            a_folder = Folder.find_one(Q('category', 'eq', 'dashboard'))
-            try:
-                a_folder.look_at_me()
-                self.assertTrue(False)
-            except AttributeError as e:
-                self.assertTrue(True)
-        except NoResultsFound as e:
-                # Shouldn't get here because dashboards are folders
-                self.assertTrue(False)
+        # Folder class should not be able to use a Dashboard method
+        a_folder = Folder.find_one(Q('category', 'eq', 'dashboard'))
+        with self.assertRaises(AttributeError):
+            a_folder.look_at_me()
 
     def test_finding_incompatible_class(self):
-        try:
-            a_datum = Data.find_one(Q('category', 'eq', 'dashboard'))
-            try:
-                a_datum.look_at_me()
-                # Shouldn't get here because find_one should cause exception and never get to this block
-                self.assertTrue(False)
-            except AttributeError as e:
-                # Shouldn't get here because find_one should cause exception
-                self.assertTrue(False)
-        except NoResultsFound as e:
-            self.assertTrue(True)
+        # Data class should not be able to find a dashboard object
+        with self.assertRaises(NoResultsFound):
+            Data.find_one(Q('category', 'eq', 'dashboard'))
+
 
     def test_subclasses_should_set_data_on_creation(self):
         data = Data.find_one(Q('name', 'eq', 'My Raw Data'))
-        self.assertEqual(data.number, 31)
+        self.assertEqual(data.number, 31, 'Number was not properly stored during object creation.')
 
     def test_subclasses_that_do_not_set_data_should_get_defaults(self):
         analysis = Analysis.find_one()
-        self.assertEqual(analysis.number, 1)
+        self.assertEqual(analysis.number, 1, 'Default number was not saved on this object.')
 
 if __name__ == '__main__':
     unittest.main()
