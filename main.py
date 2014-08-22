@@ -187,5 +187,9 @@ class TestNodeRefactoring(unittest.TestCase):
         data = Data.find_one(Q('name', 'eq', 'My Raw Data'))
         self.assertEqual(data.number, 31)
 
+    def test_subclasses_that_do_not_set_data_should_get_defaults(self):
+        analysis = Analysis.find_one()
+        self.assertEqual(analysis.number, 1)
+
 if __name__ == '__main__':
     unittest.main()
