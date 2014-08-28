@@ -42,6 +42,11 @@ class Node(StoredObject):
     }
 
     find_query = None
+    api_route = 'node'
+
+    def __init__(self, **kwargs):
+        super(Node, self).__init__(**kwargs)
+        self.category = self.api_route
 
     @classmethod
     def find_one(cls, query=None, **kwargs):
@@ -57,10 +62,7 @@ class Node(StoredObject):
 
 class Folder(Node):
     find_query = Q('category', 'eq', 'folder') | Q('category', 'eq', 'dashboard')
-
-    def __init__(self, **kwargs):
-        super(Node, self).__init__(**kwargs)
-        self.category = "folder"
+    api_route = 'folder'
 
     def be_a_folder(self):
         return 'I am a folder.'
@@ -68,13 +70,13 @@ class Folder(Node):
 
 class Dashboard(Folder):
     find_query = Q('category', 'eq', 'dashboard')
+    api_route = 'dashboard'
 
     def __init__(self, **kwargs):
         existing_dashboards = Dashboard.find()
         if existing_dashboards.count() != 0:
             raise DashboardError("Two Dashboards")
-        super(Node, self).__init__(**kwargs)
-        self.category = 'dashboard'
+        super(Folder, self).__init__(**kwargs)
 
     def look_at_me(self):
         return 'Look at me! I am', self.name, '!'
@@ -82,26 +84,17 @@ class Dashboard(Folder):
 
 class Project(Node):
     find_query = Q('category', 'eq', 'project')
-
-    def __init__(self, **kwargs):
-        super(Node, self).__init__(**kwargs)
-        self.category = "project"
+    api_route = 'project'
 
 
 class Data(Node):
     find_query = Q('category', 'eq', 'data')
-
-    def __init__(self, **kwargs):
-        super(Node, self).__init__(**kwargs)
-        self.category = "data"
+    api_route = 'data'
 
 
 class Analysis(Node):
     find_query = Q('category', 'eq', 'analysis')
-
-    def __init__(self, **kwargs):
-        super(Node, self).__init__(**kwargs)
-        self.category = "analysis"
+    api_route = 'analysis'
 
 
 class TestNodeRefactoring(unittest.TestCase):
@@ -132,7 +125,7 @@ class TestNodeRefactoring(unittest.TestCase):
     def test_only_one_dashboard(self):
         # Should only be able to have one Dashboard
         with self.assertRaises(DashboardError):
-            Dashboard(name="Second Dashboard").setup()
+            Dashboard(name="Second Dashboard").save()
 
     def test_dashboard_only_functionality(self):
         a_dashboard = Dashboard.find_one(Q('name', 'eq', 'Dashboard'))
